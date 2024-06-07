@@ -6,7 +6,6 @@ import * as qrcode from 'qrcode-terminal';
 export class AltWhatsappService {
   private clients: { [key: string]: Client } = {};
 
-
   // register client id with whatsapp and generate qr code 
   async registerClient(body, res): Promise<void> {
     const { clientId } = body;
