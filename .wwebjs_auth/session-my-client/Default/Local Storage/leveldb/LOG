@@ -1,6 +1,0 @@
-2024/06/07-06:35:42.446 1b44 Reusing MANIFEST D:\IRS-Project\whatsnew\.wwebjs_auth\session-my-client\Default\Local Storage\leveldb/MANIFEST-000001
-2024/06/07-06:35:42.447 1b44 Recovering log #3
-2024/06/07-06:35:42.448 1b44 Reusing old log D:\IRS-Project\whatsnew\.wwebjs_auth\session-my-client\Default\Local Storage\leveldb/000003.log 
-2024/06/07-06:37:43.442 1b44 Level-0 table #5: started
-2024/06/07-06:37:43.450 1b44 Level-0 table #5: 32192 bytes OK
-2024/06/07-06:37:43.452 1b44 Delete type=0 #3
