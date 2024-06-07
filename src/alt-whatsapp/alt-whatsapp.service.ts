@@ -9,7 +9,7 @@ export class AltWhatsappService {
 
   async registerClient(body, res): Promise<void> {
     const { clientId } = body;
-    console.log(clientId)
+    console.log(clientId);
     if (!clientId) {
       throw new BadRequestException('clientId is required');
     }
@@ -18,8 +18,18 @@ export class AltWhatsappService {
     }
 
     const client = new Client({
-      puppeteer: { headless: true },
-      authStrategy: new LocalAuth({ clientId }),
+      puppeteer: {
+        headless: true,
+      },
+      authStrategy: new LocalAuth({
+        clientId: clientId,
+      }),
+
+      webVersionCache: {
+        type: 'remote',
+        remotePath:
+          'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+      },
     });
 
     client.on('qr', (qr) => {
@@ -36,6 +46,7 @@ export class AltWhatsappService {
     client.on('authenticated', () => {
       this.logger.log(`Client ${clientId} authenticated`);
     });
+    console.log(this.clients);
 
     client.on('message', async (message) => {
       try {
@@ -61,20 +72,24 @@ export class AltWhatsappService {
     await client.initialize();
   }
 
-  async sendMessage(body,res): Promise<void> {
+  async sendMessage(body, res): Promise<void> {
     const { clientId, number, message } = body;
-    if(!clientId || !number || !message) throw new BadRequestException('clientId, number, and message are required');
-    
+    if (!clientId || !number || !message)
+      throw new BadRequestException(
+        'clientId, number, and message are required',
+      );
+
     const client = this.clients[clientId];
+    console.log(client);
     if (!client) {
       throw new BadRequestException(`Client ${clientId} does not exist`);
     }
-
+    console.log(this.clients[clientId]);
     try {
       await client.sendMessage(number, message);
-      this.logger.log(`Message sent to ${number} from client ${clientId}`);
+      return res.send({ message: 'message sent succesfully' });
     } catch (error) {
-      this.logger.error(`Failed to send message from client ${clientId} to ${number}`);
+      throw new BadRequestException(`Error sending message: ${error}`);
     }
   }
 }
