@@ -1,12 +1,13 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Client, LocalAuth } from 'whatsapp-web.js';
 import * as qrcode from 'qrcode-terminal';
 
 @Injectable()
 export class AltWhatsappService {
   private clients: { [key: string]: Client } = {};
-  private readonly logger = new Logger(AltWhatsappService.name);
 
+
+  // register client id with whatsapp and generate qr code 
   async registerClient(body, res): Promise<void> {
     const { clientId } = body;
     console.log(clientId);
@@ -25,6 +26,7 @@ export class AltWhatsappService {
         clientId: clientId,
       }),
 
+      // to update env
       webVersionCache: {
         type: 'remote',
         remotePath:
@@ -33,38 +35,39 @@ export class AltWhatsappService {
     });
 
     client.on('qr', (qr) => {
-      this.logger.log(`QR RECEIVED for ${clientId}`);
+      console.log(`QR RECEIVED for ${clientId}`);
       qrcode.generate(qr, { small: true });
     });
 
     client.on('ready', async () => {
-      this.logger.log(`Client ${clientId} is ready!`);
+      console.log(`Client ${clientId} is ready!`);
       const version = await client.getWWebVersion();
-      this.logger.log(`WhatsApp Web Version: ${version}`);
+      console.log(`WhatsApp Web Version: ${version}`);
     });
 
     client.on('authenticated', () => {
-      this.logger.log(`Client ${clientId} authenticated`);
+      console.log(`Client ${clientId} authenticated`);
     });
-    console.log(this.clients);
 
+
+    // will do it later for make whatsapp bot 
     client.on('message', async (message) => {
       try {
         if (message.from !== 'status@broadcast') {
           const contact = await message.getContact();
-          this.logger.log(`Message from ${contact.number}: ${message.body}`);
+          console.log(`Message from ${contact.number}: ${message.body}`);
         }
       } catch (error) {
-        this.logger.error(`Error handling message: ${error.message}`);
+        console.error(`Error handling message: ${error.message}`);
       }
     });
 
     client.on('auth_failure', (msg) => {
-      this.logger.error(`Authentication failure for ${clientId}: ${msg}`);
+      console.error(`Authentication failure for ${clientId}: ${msg}`);
     });
 
     client.on('disconnected', (reason) => {
-      this.logger.log(`Client ${clientId} was logged out: ${reason}`);
+      console.log(`Client ${clientId} was logged out: ${reason}`);
       delete this.clients[clientId];
     });
 
@@ -72,7 +75,9 @@ export class AltWhatsappService {
     await client.initialize();
   }
 
-  async sendMessage(body, res): Promise<void> {
+
+  // send meesage to whatspp number
+  async sendMessage(body, res) {
     const { clientId, number, message } = body;
     if (!clientId || !number || !message)
       throw new BadRequestException(
@@ -80,11 +85,9 @@ export class AltWhatsappService {
       );
 
     const client = this.clients[clientId];
-    console.log(client);
     if (!client) {
       throw new BadRequestException(`Client ${clientId} does not exist`);
     }
-    console.log(this.clients[clientId]);
     try {
       await client.sendMessage(number, message);
       return res.send({ message: 'message sent succesfully' });
