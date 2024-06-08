@@ -5,7 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { ProductsService } from './products/products.service';
 import { ProductsController } from './products/products.controller';
 import { ProductsModule } from './products/products.module';
-import { PlansModule } from './plans/plan.module';
+import { PlansModule } from './plan/plan.module';
 import { PaymentsModule } from './payment/payment.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
