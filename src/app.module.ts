@@ -10,6 +10,7 @@ import { PaymentsModule } from './payment/payment.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AltWhatsappModule } from './alt-whatsapp/alt-whatsapp.module';
+import { InstancesModule } from './instances/instances.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AltWhatsappModule } from './alt-whatsapp/alt-whatsapp.module';
     PlansModule,
     PaymentsModule,
     AltWhatsappModule,
+    InstancesModule,
   ],
   controllers: [AppController, ProductsController],
   providers: [AppService, ProductsService],

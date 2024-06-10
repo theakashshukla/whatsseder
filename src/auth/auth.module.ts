@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schema/auth.shcema';
+import { AdminAuthGuard } from './gaurds/adminAuth.gaurd';
 
 @Module({
   imports : [
@@ -27,6 +28,7 @@ import { User, UserSchema } from './schema/auth.shcema';
     ]),
   ],
   providers: [AuthService],
-  controllers: [AuthController]
+  controllers: [AuthController],
+  exports:[AdminAuthGuard]
 })
 export class AuthModule {}

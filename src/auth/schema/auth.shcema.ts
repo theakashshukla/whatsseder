@@ -23,18 +23,17 @@ export class User {
   @Prop({ type: String })
   ContactNo: string;
 
-  @Prop({ default: true })
+  @Prop({type:Boolean, default: true })
   isActive: boolean;
   
   @Prop({ default: false })
   CouponCode: boolean;
 
-  @Prop({ type: [{clientId:String,MobileNo:Number}] })
-  instanceIDs: [{clientId:String,MobileNo:Number}];
+  @Prop({ type: [Types.ObjectId], ref: 'Instance' })
+  clientIds: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'Payments' })
-  payments: Types.ObjectId;
-
+  @Prop({ type: [Types.ObjectId], ref: 'Payments' })
+  payments: Types.ObjectId[];
 
 }
 export const UserSchema = SchemaFactory.createForClass(User);
