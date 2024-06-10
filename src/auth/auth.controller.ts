@@ -29,9 +29,8 @@ export class AuthController {
   @Post('login')
   async login(
     @Res() res: Response,
-    @Req() req: Request,
     @Body(ValidationPipe) loginDto: LoginDto,
   ) {
-    return this.authService.login(res, req, loginDto);
+    return this.authService.login(res, loginDto);
   }
 }

@@ -17,7 +17,7 @@ export class AuthService {
   bcrypt: any;
   constructor(
     @InjectModel(User.name) private UserModel: Model<User>,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(res, req, registerDto: RegisterDto) {
@@ -29,8 +29,11 @@ export class AuthService {
         throw new ConflictException('User already exists');
       }
 
+      const userId = (await this.UserModel.countDocuments()) + 1;
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new this.UserModel({
+        userId,
         name,
         email,
         password: hashedPassword,
@@ -38,12 +41,11 @@ export class AuthService {
       await newUser.save();
       res.status(201).json({ message: 'User created successfully' });
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException(error.message);
     }
   }
 
-  async login(res, req, loginDto: LoginDto) {
+  async login(res, loginDto: LoginDto) {
     try {
       const { email, password } = loginDto;
 
@@ -60,7 +62,7 @@ export class AuthService {
       if (!isMatch) {
         throw new UnauthorizedException('Invalid password');
       }
-      const token = this.jwtService.sign({ id: user._id });
+      const token = this.jwtService.sign({ id: user._id }, { expiresIn: '5h' });
 
       res
         .status(200)

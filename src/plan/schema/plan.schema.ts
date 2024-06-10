@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type PlansDocument = HydratedDocument<Plans>;
 
@@ -21,10 +21,10 @@ export class Plans {
   instanceCount: number;
 
   @Prop({ type: Number })
-  DiscountedAmount: number;
+  discountedAmount: number;
 
-  @Prop({ type: Array })
-  feature: [];
+  @Prop({ type: [String] })
+  feature: [string];
 
   @Prop({ type: Number })
   discountPercent: number;
