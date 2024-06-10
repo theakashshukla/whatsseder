@@ -22,6 +22,6 @@ import { UserToken, UserTokenSchema } from './schema/token.schema';
     ]),
   ],
   controllers: [InstancesController],
-  providers: [InstancesService, , JwtStrategy, AuthGuard],
+  providers: [InstancesService, JwtStrategy, AuthGuard],
 })
 export class InstancesModule {}

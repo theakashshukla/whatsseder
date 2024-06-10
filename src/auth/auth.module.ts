@@ -29,6 +29,5 @@ import { AdminAuthGuard } from './gaurds/adminAuth.gaurd';
   ],
   providers: [AuthService],
   controllers: [AuthController],
-  exports:[AdminAuthGuard]
 })
 export class AuthModule {}

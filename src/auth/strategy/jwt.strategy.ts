@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
   ) {
     super({
       jwtFromRequest: (req: Request) => {
-        return req.cookies.IRSADMIN;
+        return req.cookies.ADMIN;
       },
       secretOrKey: configService.get<string>('ADMIN_SECRET'),
     });
@@ -40,4 +40,3 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
     }
   }
 }
-
