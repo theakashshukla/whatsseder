@@ -26,7 +26,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admin-jwt') {
     const { id } = payload;
     try {
       const user = await this.UserModel.findById(id);
-      // console.log('User:', user);
       if (!user) {
         throw new NotFoundException(
           'User not authenticated. Please log in again.',

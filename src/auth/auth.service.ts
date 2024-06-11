@@ -21,7 +21,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async register(res, req, registerDto: RegisterDto) {
+  async register(res, registerDto: RegisterDto) {
     try {
       const { name, email, password } = registerDto;
 
