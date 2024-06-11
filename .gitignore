@@ -5,6 +5,8 @@
 /sessions
 ./sessions
 
+*.zip
+
 # Logs
 logs
 *.log

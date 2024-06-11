@@ -17,7 +17,6 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @UseGuards(AdminAuthGuard)
   register(
     @Res() res: Response,
     @Req() req: Request,

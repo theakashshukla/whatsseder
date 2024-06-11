@@ -11,6 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { generateRandomNumber } from 'src/utils/common';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +30,7 @@ export class AuthService {
         throw new ConflictException('User already exists');
       }
 
-      const userId = (await this.UserModel.countDocuments()) + 1;
+      let userId = 'UID' + generateRandomNumber(6);
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new this.UserModel({

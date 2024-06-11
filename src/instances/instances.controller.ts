@@ -21,4 +21,9 @@ export class InstancesController {
   createClientId(@Body() body:any, @Res() res:Response){
     return this.instancesService.createClientId(body,res);
   }
+
+  @Post("/generateToken")
+  generateToken(@Body() body:any, @Res() res:Response){
+    return this.instancesService.generateToken(body,res);
+  }
 }
