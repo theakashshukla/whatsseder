@@ -38,132 +38,122 @@ export class AltWhatsappService {
     const { clientId } = body;
     console.log(clientId);
     if (!clientId) {
-      throw new BadRequestException('clientId is required');
+      return res.status(400).send('clientId is required');
     }
     if (this.clients[clientId]) {
-      throw new BadRequestException(`Client ${clientId} already exists`);
+      return res.status(400).send(`Client ${clientId} already exists`);
     }
 
     if (mongoose.connection.readyState !== 1) {
-      throw new BadRequestException('MongoDB connection is not established');
+      return res.status(503).send('MongoDB connection is not established');
     }
 
-    const store = new MongoStore({ mongoose: mongoose, session: clientId });
+    const store = new MongoStore({ mongoose: mongoose, collectionName: 'wwebjs_sessions'});
+    console.log(store)
     const sessionExists = await store.sessionExists({ session: clientId });
 
-    if (!sessionExists) {
-      console.log(
-        `Session for ${clientId} does not exist. Initializing new session...`,
-      );
+    try {
+      if (!sessionExists) {
+        console.log(`Session for ${clientId} does not exist. Initializing new session...`);
 
-      const client = new Client({
-        puppeteer: {
-          headless: true,
-        },
-        authStrategy: new RemoteAuth({
-          store: store,
-          // dataPath: `./sessions/${clientId}`,
-          backupSyncIntervalMs: 60 * 1000,
-        }),
-        webVersionCache: {
-          type: 'remote',
-          remotePath:
-            'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
-        },
-      });
+        const client = new Client({
+          puppeteer: {
+            headless: true,
+          },
+          authStrategy: new RemoteAuth({
+            store: store,
+            backupSyncIntervalMs: 60 * 1000,
+          }),
+          webVersionCache: {
+            type: 'remote',
+            remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+          },
+        });
 
-      client.on('qr', (qr) => {
-        console.log(`QR RECEIVED for ${clientId}`);
-        qrcode.generate(qr, { small: true });
-      });
+        client.on('qr', (qr) => {
+          console.log(`QR RECEIVED for ${clientId}`);
+          qrcode.generate(qr, { small: true });
+        });
 
-      client.on('ready', async () => {
-        console.log(`Client ${clientId} is ready!`);
-        const version = await client.getWWebVersion();
-        console.log(`WhatsApp Web Version: ${version}`);
-      });
+        client.on('ready', async () => {
+          console.log(`Client ${clientId} is ready!`);
+          const version = await client.getWWebVersion();
+          console.log(`WhatsApp Web Version: ${version}`);
+        });
 
-      client.on('authenticated', () => {
-        console.log(`Client ${clientId} authenticated`);
-      });
+        client.on('authenticated', () => {
+          console.log(`Client ${clientId} authenticated`);
+        });
 
-      client.on('message', async (message) => {
-        try {
-          if (message.from !== 'status@broadcast') {
-            const contact = await message.getContact();
-            console.log(`Message from ${contact.number}: ${message.body}`);
+        client.on('message', async (message) => {
+          try {
+            if (message.from !== 'status@broadcast') {
+              const contact = await message.getContact();
+              console.log(`Message from ${contact.number}: ${message.body}`);
+            }
+          } catch (error) {
+            console.error(`Error handling message: ${error.message}`);
           }
-        } catch (error) {
-          console.error(`Error handling message: ${error.message}`);
-        }
-      });
+        });
 
-      client.on('auth_failure', (msg) => {
-        console.error(`Authentication failure for ${clientId}: ${msg}`);
-      });
+        client.on('auth_failure', (msg) => {
+          console.error(`Authentication failure for ${clientId}: ${msg}`);
+        });
 
-      client.on('disconnected', (reason) => {
-        console.log(`Client ${clientId} was logged out: ${reason}`);
-        delete this.clients[clientId];
-      });
+        client.on('disconnected', (reason) => {
+          console.log(`Client ${clientId} was logged out: ${reason}`);
+          delete this.clients[clientId];
+        });
 
-      this.clients[clientId] = client;
-      await client.initialize();
-    } else {
-      console.log(
-        `Session for ${clientId} already exists. Reinitializing client...`,
-      );
-      await this.initializeClient(store, clientId);
+        this.clients[clientId] = client;
+        await client.initialize();
+        res.status(200).send(`Client ${clientId} is ready and a new session has been initialized.`);
+      } else {
+        console.log(`Session for ${clientId} already exists. Reinitializing client...`);
+        await this.initializeClient(store, clientId); // Assuming initializeClient is implemented elsewhere
+        res.status(200).send(`Client ${clientId} session was reinitialized.`);
+      }
+    } catch (error) {
+      console.error(`Error during client initialization: ${error.message}`);
+      res.status(500).send('An error occurred during client initialization.');
     }
   }
 
-  private async initializeClient(store: typeof MongoStore, clientId: string) {
+
+  private async initializeClient(store: typeof MongoStore, clientId: string): Promise<void> {
     const client = new Client({
       puppeteer: {
         headless: true,
       },
       authStrategy: new RemoteAuth({
         store: store,
-        dataPath: `./sessions/${clientId}`,
         backupSyncIntervalMs: 60 * 1000,
       }),
       webVersionCache: {
         type: 'remote',
-        remotePath:
-          'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
       },
     });
-
+  
     client.on('ready', async () => {
       console.log(`Client ${clientId} is ready!`);
       const version = await client.getWWebVersion();
       console.log(`WhatsApp Web Version: ${version}`);
     });
-
+  
     client.on('authenticated', () => {
       console.log(`Client ${clientId} authenticated`);
     });
-
-    client.on('message', async (message) => {
-      try {
-        if (message.from !== 'status@broadcast') {
-          const contact = await message.getContact();
-          console.log(`Message from ${contact.number}: ${message.body}`);
-        }
-      } catch (error) {
-        console.error(`Error handling message: ${error.message}`);
-      }
-    });
-
+  
     client.on('auth_failure', (msg) => {
       console.error(`Authentication failure for ${clientId}: ${msg}`);
     });
-
+  
     client.on('disconnected', (reason) => {
       console.log(`Client ${clientId} was logged out: ${reason}`);
       delete this.clients[clientId];
     });
-
+  
     this.clients[clientId] = client;
     await client.initialize();
   }
