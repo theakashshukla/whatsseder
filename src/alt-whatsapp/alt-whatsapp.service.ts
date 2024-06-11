@@ -49,11 +49,10 @@ export class AltWhatsappService {
     }
 
     const store = new MongoStore({ mongoose: mongoose});
-    console.log(store)
     const sessionExists = await store.sessionExists({ session: clientId });
 
     try {
-      if (!sessionExists) {
+      if (sessionExists) {
         console.log(`Session for ${clientId} does not exist. Initializing new session...`);
 
         const client = new Client({
