@@ -48,7 +48,7 @@ export class AltWhatsappService {
       return res.status(503).send('MongoDB connection is not established');
     }
 
-    const store = new MongoStore({ mongoose: mongoose, collectionName: 'wwebjs_sessions'});
+    const store = new MongoStore({ mongoose: mongoose});
     console.log(store)
     const sessionExists = await store.sessionExists({ session: clientId });
 
@@ -61,8 +61,9 @@ export class AltWhatsappService {
             headless: true,
           },
           authStrategy: new RemoteAuth({
+            clientId: clientId,
             store: store,
-            backupSyncIntervalMs: 60 * 1000,
+            backupSyncIntervalMs: 300000,
           }),
           webVersionCache: {
             type: 'remote',
@@ -83,6 +84,7 @@ export class AltWhatsappService {
 
         client.on('authenticated', () => {
           console.log(`Client ${clientId} authenticated`);
+          
         });
 
         client.on('message', async (message) => {
