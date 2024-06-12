@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   UseGuards,
@@ -10,6 +11,7 @@ import { generateClientIds } from 'src/utils/common';
 import { JwtService } from '@nestjs/jwt';
 import { Plans } from 'src/plan/schema/plan.schema';
 import { UserToken } from './schema/token.schema';
+import { User } from 'src/auth/schema/auth.shcema';
 
 @Injectable()
 export class InstancesService {
@@ -17,38 +19,46 @@ export class InstancesService {
     @InjectModel(Instance.name) private InstanceModel: Model<Instance>,
     @InjectModel(UserToken.name) private UserTokenModel: Model<UserToken>,
     @InjectModel(Plans.name) private PlanModel: Model<Plans>,
+    @InjectModel(User.name) private UserModel: Model<User>,
     private jwtService: JwtService,
   ) {}
 
-  async createClientId(body, res) {
+  async createClientId(body) {
     try {
       const { userId, planId } = body;
-      console.log(userId, planId);
 
       if (!userId || !planId) {
-        throw new Error('UserId and PlanId is required');
+        throw new BadRequestException('UserId and PlanId are required');
       }
 
+      const user = await this.UserModel.findOne({ userId }).select(
+        '_id userId',
+      );
+      if (!user) throw new BadRequestException('User not found');
       const plan = await this.PlanModel.findOne({ planId }).select(
         'instanceCount',
       );
 
       if (!plan) {
-        throw new Error('Plan not found');
+        throw new BadRequestException('Plan not found');
       }
 
       const clientIds = generateClientIds(plan.instanceCount);
-
       const instances = clientIds.map((clientId) => ({
         userId: userId,
         clientId: clientId,
       }));
 
-      await this.InstanceModel.insertMany(instances);
+      const insertedInstances = await this.InstanceModel.insertMany(instances);
+      user.clientIds.push(...insertedInstances.map((instance) => instance._id));
+      await user.save();
 
-      res.status(201).json({ message: 'ClientIds created successfully' });
+      return { message: 'ClientIds created successfully' };
     } catch (error) {
-      throw new InternalServerErrorException(error.message);
+      
+      throw new InternalServerErrorException(
+        'An error occurred while creating ClientIds.',
+      );
     }
   }
 
@@ -60,18 +70,22 @@ export class InstancesService {
         throw new Error('ClientId is required');
       }
 
-      const instance = await this.InstanceModel.findOne({ userId }).select(
+      const user = await this.UserModel.findOne({ userId }).select(
         '_id userId',
       );
-      console.log(instance);
 
-      if (!instance) {
+      if (!User) {
         throw new Error('Instance not found');
       }
 
-      const token = this.jwtService.sign({ userId: instance.userId });
+      const token = this.jwtService.sign({ userId: user.userId });
       // console.log(token);
-      await this.UserTokenModel.create({ userId: instance.userId, token: token });
+      const createToken = await this.UserTokenModel.create({
+        userId: user.userId,
+        token: token,
+      });
+      user.token = createToken._id;
+      await user.save();
 
       res
         .status(200)

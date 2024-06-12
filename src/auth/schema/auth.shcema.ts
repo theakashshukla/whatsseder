@@ -29,6 +29,9 @@ export class User {
   @Prop({ default: false })
   CouponCode: boolean;
 
+  @Prop({type:Types.ObjectId,ref:"UserToken"})
+  token:Types.ObjectId;
+
   @Prop({ type: [Types.ObjectId], ref: 'Instance' })
   clientIds: Types.ObjectId[];
 

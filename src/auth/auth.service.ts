@@ -76,7 +76,7 @@ export class AuthService {
 
   async getAllUsers(res) {
     try {
-      const users = await this.UserModel.find().exec();
+      const users = await this.UserModel.find().populate("token");
 
       if (!users || users.length === 0) {
         throw new NotFoundException('No users found');

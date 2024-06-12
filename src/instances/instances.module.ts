@@ -10,6 +10,7 @@ import { UserToken, UserTokenSchema } from './schema/token.schema';
 import { Plans, PlansSchema } from 'src/plan/schema/plan.schema';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategy/jwt.strtategy';
+import { User, UserSchema } from 'src/auth/schema/auth.shcema';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { JwtStrategy } from './strategy/jwt.strtategy';
           secret: configService.get<string>('JWT_SECRET'),
           signOptions: {
             expiresIn:'1y',
-          },
+          }
         };
       },
     }),
@@ -30,6 +31,7 @@ import { JwtStrategy } from './strategy/jwt.strtategy';
       { name: Instance.name, schema: InstanceSchema },
       { name: UserToken.name, schema: UserTokenSchema },
       { name: Plans.name, schema: PlansSchema },
+      {name: User.name,schema:UserSchema}
     ]),
   ],
   controllers: [InstancesController],

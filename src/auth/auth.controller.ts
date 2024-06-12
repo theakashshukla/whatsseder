@@ -30,4 +30,9 @@ export class AuthController {
   ) {
     return this.authService.login(res, loginDto);
   }
+
+  @Post('/getAllUser')
+  async getAllUser(@Res() res:Response){
+    return this.authService.getAllUsers(res)
+  }
 }
