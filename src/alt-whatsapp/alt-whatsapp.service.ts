@@ -157,7 +157,6 @@ export class AltWhatsappService {
       console.log(`Client ${clientId} authenticated`);
     });
 
-
     client.on('auth_failure', (msg) => {
       console.error(`Authentication failure for ${clientId}: ${msg}`);
     });
@@ -170,6 +169,8 @@ export class AltWhatsappService {
     this.clients[clientId] = client;
     await client.initialize();
   }
+
+  
 
   // send meesage to whatspp number
   async sendMessage(body, res) {
@@ -211,6 +212,155 @@ export class AltWhatsappService {
       throw new BadRequestException(`Error sending media: ${error}`);
     }
   }
+
+  async sendMessageReply(body, res) {
+    const { clientId, number, message, messageId } = body;
+    if (!clientId || !number || !message || !messageId)
+      throw new BadRequestException(
+        'clientId, number, message, and messageId are required',
+      );
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      await client.sendMessage(number, message, {
+        quotedMessageId: messageId,
+      });
+      return res.send({ message: 'message sent succesfully' });
+    } catch (error) {
+      throw new BadRequestException(`Error sending message: ${error}`);
+    }
+  }
+
+  async sendSeen(body, res) {
+    const { clientId, number } = body;
+    if (!clientId || !number)
+      throw new BadRequestException('clientId and number are required');
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      await client.sendSeen(number);
+      return res.send({ message: 'seen sent successfully' });
+    } catch (error) {
+      throw new BadRequestException(`Error sending seen: ${error}`);
+    }
+  }
+
+  async sendLocation(body, res) {
+    const { clientId, number, lat, long, title, address } = body;
+    if (!clientId || !number || !lat || !long || !title || !address)
+      throw new BadRequestException(
+        'clientId, number, lat, long, title, and address are required',
+      );
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      // await client.sendLocation(number, lat, long, title, address);
+      return res.send({ message: 'location sent successfully' });
+    } catch (error) {
+      throw new BadRequestException(`Error sending location: ${error}`);
+    }
+  }
+
+  async sendContactCards(body, res) {
+    const { clientId, number, contacts } = body;
+    if (!clientId || !number || !contacts)
+      throw new BadRequestException('clientId, number, and contacts are required');
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      // await client.sendContactCards(number, contacts);
+      return res.send({ message: 'contact cards sent successfully' });
+    } catch (error) {
+      throw new BadRequestException(`Error sending contact cards: ${error}`);
+    }
+  }
+
+  async sendContact(body, res) {
+    const { clientId, number, contact } = body;
+    if (!clientId || !number || !contact)
+      throw new BadRequestException(
+        'clientId, number, and contact are required',
+      );
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      // await client.sendContact(number, contact);
+      return res.send({ message: 'contact sent successfully' });
+    } catch (error) {
+      throw new BadRequestException(`Error sending contact: ${error}`);
+    }
+  }
+
+  async sendPoll(body, res) {
+    const { clientId, number, question, options } = body;
+    if (!clientId || !number || !question || !options)
+      throw new BadRequestException(
+        'clientId, number, question, and options are required',
+      );
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      // await client.sendPoll(number, question, options);
+      // await client.(number, question, options);
+      return res.send({ message: 'poll sent successfully' });
+    } catch (error) {
+      throw new BadRequestException(`Error sending poll: ${error}`);
+    }
+  }
+
+  async validateNumber(body, res) {
+    const { clientId, number } = body;
+    if (!clientId || !number)
+      throw new BadRequestException('clientId and number are required');
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      const isValid = await client.isRegisteredUser(number);
+      return res.send({ isValid });
+    } catch (error) {
+      throw new BadRequestException(`Error validating number: ${error}`);
+    }
+  }
+
+  async getContactInfo(body, res) {
+    const { clientId, number } = body;
+    if (!clientId || !number)
+      throw new BadRequestException('clientId and number are required');
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    try {
+      // const contact = await client.getContactInfo(number);
+      // return res.send({ contact });
+    } catch (error) {
+      throw new BadRequestException(`Error getting contact info: ${error}`);
+    }
+  }
+  
+
 
   // send button group to whatsapp number
   async sendButtonGroup(body, res) {
