@@ -22,4 +22,9 @@ export class AltWhatsappController {
   async sendMedia(@Body() body: any, @Res() res: Response) {
     await this.altWhatsappService.sendMedia(body, res);
   }
+
+  @Post('/sendButtons')
+  async sendButtonsgroup(@Body() body: any, @Res() res: Response) {
+    await this.altWhatsappService.sendButtonGroup(body, res);
+  }
 }

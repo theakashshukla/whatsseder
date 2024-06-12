@@ -23,7 +23,7 @@ export class InstancesService {
     private jwtService: JwtService,
   ) {}
 
-  async createClientId(body) {
+  async createClientId(body,res) {
     try {
       const { userId, planId } = body;
 
@@ -53,7 +53,7 @@ export class InstancesService {
       user.clientIds.push(...insertedInstances.map((instance) => instance._id));
       await user.save();
 
-      return { message: 'ClientIds created successfully' };
+      res.status(201).json({ message: 'ClientIds created successfully' });
     } catch (error) {
       
       throw new InternalServerErrorException(

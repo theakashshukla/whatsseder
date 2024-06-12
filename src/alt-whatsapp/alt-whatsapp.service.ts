@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Client, MessageMedia, RemoteAuth } from 'whatsapp-web.js';
+import { Buttons, Client, MessageMedia, RemoteAuth } from 'whatsapp-web.js';
 import * as qrcode from 'qrcode-terminal';
 import { MongoStore } from 'wwebjs-mongo';
 import mongoose from 'mongoose';
@@ -48,12 +48,14 @@ export class AltWhatsappService {
       return res.status(503).send('MongoDB connection is not established');
     }
 
-    const store = new MongoStore({ mongoose: mongoose});
+    const store = new MongoStore({ mongoose: mongoose });
     const sessionExists = await store.sessionExists({ session: clientId });
 
     try {
       if (sessionExists) {
-        console.log(`Session for ${clientId} does not exist. Initializing new session...`);
+        console.log(
+          `Session for ${clientId} does not exist. Initializing new session...`,
+        );
 
         const client = new Client({
           puppeteer: {
@@ -66,7 +68,8 @@ export class AltWhatsappService {
           }),
           webVersionCache: {
             type: 'remote',
-            remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+            remotePath:
+              'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
           },
         });
 
@@ -83,7 +86,6 @@ export class AltWhatsappService {
 
         client.on('authenticated', () => {
           console.log(`Client ${clientId} authenticated`);
-          
         });
 
         client.on('message', async (message) => {
@@ -108,9 +110,15 @@ export class AltWhatsappService {
 
         this.clients[clientId] = client;
         await client.initialize();
-        res.status(200).send(`Client ${clientId} is ready and a new session has been initialized.`);
+        res
+          .status(200)
+          .send(
+            `Client ${clientId} is ready and a new session has been initialized.`,
+          );
       } else {
-        console.log(`Session for ${clientId} already exists. Reinitializing client...`);
+        console.log(
+          `Session for ${clientId} already exists. Reinitializing client...`,
+        );
         await this.initializeClient(store, clientId); // Assuming initializeClient is implemented elsewhere
         res.status(200).send(`Client ${clientId} session was reinitialized.`);
       }
@@ -120,8 +128,10 @@ export class AltWhatsappService {
     }
   }
 
-
-  private async initializeClient(store: typeof MongoStore, clientId: string): Promise<void> {
+  private async initializeClient(
+    store: typeof MongoStore,
+    clientId: string,
+  ): Promise<void> {
     const client = new Client({
       puppeteer: {
         headless: true,
@@ -132,29 +142,31 @@ export class AltWhatsappService {
       }),
       webVersionCache: {
         type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+        remotePath:
+          'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
       },
     });
-  
+
     client.on('ready', async () => {
       console.log(`Client ${clientId} is ready!`);
       const version = await client.getWWebVersion();
       console.log(`WhatsApp Web Version: ${version}`);
     });
-  
+
     client.on('authenticated', () => {
       console.log(`Client ${clientId} authenticated`);
     });
-  
+
+
     client.on('auth_failure', (msg) => {
       console.error(`Authentication failure for ${clientId}: ${msg}`);
     });
-  
+
     client.on('disconnected', (reason) => {
       console.log(`Client ${clientId} was logged out: ${reason}`);
       delete this.clients[clientId];
     });
-  
+
     this.clients[clientId] = client;
     await client.initialize();
   }
@@ -197,6 +209,37 @@ export class AltWhatsappService {
       return res.send({ message: 'media sent successfully' });
     } catch (error) {
       throw new BadRequestException(`Error sending media: ${error}`);
+    }
+  }
+
+  // send button group to whatsapp number
+  async sendButtonGroup(body, res) {
+    const { clientId, number, buttons, text } = body;
+    if (!clientId || !number || !text)
+      throw new BadRequestException(
+        'clientId, number, buttons, and text are required',
+      );
+
+    const client = this.clients[clientId];
+    if (!client) {
+      throw new BadRequestException(`Client ${clientId} does not exist`);
+    }
+    const button1 = new Buttons(
+      text,
+      [{ body: 'Button1' }, { body: 'Button2' }],
+      'Title',
+      'Footer',
+    );
+
+    try {
+      await client.sendMessage(number, button1);
+      res.status(200).json({ message: 'Button message sent successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        message: 'Failed to send button message',
+        error: error.message,
+      });
     }
   }
 }
